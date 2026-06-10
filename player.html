@@ -5,18 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kurd X Stream - Player</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body class="player-body">
 
-    <a href="browse.html" class="back-to-browse">↩ گەڕانەوە</a>
+    <header class="player-header">
+        <a href="browse.html" class="back-btn-player">✕</a>
+        <h2 class="player-ch-title" id="playingChannelTitle">Loading...</h2>
+        <div style="width:20px;"></div> </header>
 
-    <div class="standalone-player-container">
-        <h1 id="playingChannelTitle">Loading Channel...</h1>
-        <div class="video-frame">
-            <video id="standaloneVideoPlayer" controls autoplay></video>
+    <div class="video-centered-container">
+        <div class="video-wrapper-standalone">
+            <video id="standaloneVideoPlayer" controls autoplay playsinline></video>
         </div>
     </div>
 
-    <script src="player.js"></script>
+    <div style="height: 40px;"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const channelName = urlParams.get('name');
+        const channelStreamUrl = urlParams.get('url');
+
+        if (channelName && channelStreamUrl) {
+            const decodedName = decodeURIComponent(channelName);
+            const decodedUrl = decodeURIComponent(channelStreamUrl);
+
+            document.getElementById('playingChannelTitle').innerText = decodedName;
+            
+            const video = document.getElementById('standaloneVideoPlayer');
+
+            // تشغيل البث الحي باستخدام مكتبة HLS.js لضمان ثبات الإشارة على أجهزة أندرويد المتنوعة
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(decodedUrl);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // دعم أصلي لمتصفحات آيفون وسفاري
+                video.src = decodedUrl;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play();
+                });
+            }
+        } else {
+            document.getElementById('playingChannelTitle').innerText = "خطأ في تشغيل القناة";
+        }
+    </script>
 </body>
 </html>
