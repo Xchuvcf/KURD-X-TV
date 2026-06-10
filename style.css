@@ -1,19 +1,20 @@
 :root {
-    --bg-dark: #0f0f0f;
-    --card-bg: #1a1a1a;
+    --bg-dark: #09090b;
+    --card-bg: #141416;
     --text-color: #ffffff;
-    --search-bg: #1f1f1f;
-    --border-radius: 20px;
+    --search-bg: #1d1d20;
+    --border-radius: 22px;
     --accent-blue: #00a2ff;
+    --text-muted: #8e8e93;
 }
 
-/* الألوان الخاصة بالوضع الفاتح (Light Mode) */
 .light-theme {
-    --bg-dark: #f0f2f5;
+    --bg-dark: #f2f2f7;
     --card-bg: #ffffff;
-    --text-color: #1a1a1a;
-    --search-bg: #e4e6eb;
-    --accent-blue: #007acc;
+    --text-color: #1c1c1e;
+    --search-bg: #e5e5ea;
+    --accent-blue: #007aff;
+    --text-muted: #636366;
 }
 
 body {
@@ -23,30 +24,30 @@ body {
     color: var(--text-color);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     transition: background 0.3s, color 0.3s;
+    user-select: none;
 }
 
-/* هيدر التطبيق للهاتف */
+/* هيدر التطبيق */
 .app-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
+    padding: 15px 20px 10px 20px;
 }
 .header-left span {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     margin-right: 15px;
     cursor: pointer;
-    user-select: none;
 }
 .app-title {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.4rem;
+    font-weight: 700;
 }
 
 /* شريط البحث */
 .search-container {
     padding: 0 20px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 .search-container input {
     width: 100%;
@@ -61,33 +62,71 @@ body {
     transition: background 0.3s;
 }
 
-/* الأقسام والشبكة */
-.main-content { padding: 0 20px 40px 20px; }
-.category-title {
-    font-size: 1.2rem;
-    margin: 25px 0 15px 0;
-    color: #aeaeae;
+/* عنوان القسم النشط */
+.current-section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
     text-align: right;
+    padding: 0 25px;
+    margin-bottom: 15px;
 }
 
+/* حاوي أزرار الأقسام العلوية الأفقي */
+.categories-scroll-wrapper {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 5px 20px 15px 20px;
+    direction: rtl; /* يبدأ الترتيب من اليمين لليسار كالصورة */
+}
+.categories-scroll-wrapper::-webkit-scrollbar {
+    display: none; /* إخفاء شريط التمرير المزعج بالهاتف */
+}
+
+/* تصميم الزر الدائري للقسم (Chip) */
+.category-chip {
+    background-color: var(--search-bg);
+    color: var(--text-color);
+    padding: 10px 24px;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+/* تأثير القسم النشط المضيء مثل الصورة تماماً */
+.category-chip.active {
+    background-color: var(--accent-blue);
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(0, 162, 255, 0.4);
+}
+
+/* شبكة القنوات */
+.main-content {
+    padding: 0 20px 30px 20px;
+}
 .channels-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    gap: 16px;
 }
 
-/* بطاقة القناة */
+/* بطاقة القناة المحسنة */
 .channel-box {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
-    padding: 15px;
+    padding: 14px;
     text-align: center;
     position: relative;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
     cursor: pointer;
 }
-.channel-box:active { transform: scale(0.96); }
+.channel-box:active {
+    transform: scale(0.95);
+}
 
 .channel-icon-wrapper {
     width: 100%;
@@ -96,38 +135,41 @@ body {
     overflow: hidden;
     background-size: cover;
     background-position: center;
-    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .channel-box-title {
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-top: 10px;
     color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* يضع نقاط إذا كان الاسم طويلاً مثل الصورة */
 }
 
-/* زر المفضلة التفاعلي */
+/* أيقونة المفضلة الزاوية */
 .heart-icon {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(0,0,0,0.4);
-    width: 30px;
-    height: 30px;
+    background: rgba(0,0,0,0.5);
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9rem;
-    color: #ccc;
-    transition: transform 0.2s, color 0.2s;
+    font-size: 0.75rem;
+    color: #ffffff;
     z-index: 5;
+    transition: color 0.2s;
 }
 .heart-icon.is-favorite {
     color: var(--accent-blue);
-    transform: scale(1.1);
 }
 
-/* نافذة المعلومات المودال Pop-up */
+/* نافذة المعلومات الـ Pop-up */
 .modal {
     display: none;
     position: fixed;
@@ -141,15 +183,57 @@ body {
     color: var(--text-color);
     padding: 30px;
     border-radius: var(--border-radius);
-    width: 80%; max-width: 400px;
+    width: 80%; max-width: 360px;
     text-align: center;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
     direction: rtl;
 }
 .close-modal {
     background: var(--accent-blue);
-    color: white; border: none; padding: 10px 20px;
-    border-radius: 20px; margin-top: 20px; cursor: pointer;
+    color: white; border: none; padding: 10px 24px;
+    border-radius: 20px; margin-top: 15px; cursor: pointer; font-weight: bold;
 }
 
-@media (min-width: 600px) { .channels-grid { grid-template-columns: repeat(4, 1fr); } }
+/* تصميم صفحة المشغل المنفصلة الاحترافية */
+.player-body {
+    background-color: #000000;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
+    color: #fff;
+    z-index: 10;
+}
+.back-btn-player {
+    color: #fff; text-decoration: none; font-size: 1.3rem; font-weight: bold;
+}
+.player-ch-title {
+    font-size: 1.2rem; font-weight: bold; margin: 0;
+}
+.video-centered-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+.video-wrapper-standalone {
+    width: 100%;
+    max-height: 100%;
+    aspect-ratio: 16 / 9;
+    background: #050505;
+}
+.video-wrapper-standalone video {
+    width: 100%; height: 100%; object-fit: contain;
+}
+
+@media (min-width: 600px) {
+    .channels-grid { grid-template-columns: repeat(4, 1fr); }
+}
