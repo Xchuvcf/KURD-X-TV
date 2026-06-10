@@ -1,3 +1,14 @@
+// 🔐 نظام الحماية الصارم ومنع الدخول لغير المالك
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const secretKey = urlParams.get('key');
+    
+    // يمكنك تغيير الكود السري "Xcfo2026" إلى أي كلمة سرية قوية تختارها أنت
+    const MY_SECRET_TOKEN = "Xcfo2026"; 
+
+    if (secretKey !== MY_SECRET_TOKEN) {
+        // إذا كان الرابط لا يحتوي على الكود الصحيح، يتم طرده فوراً وتوجيهه لصفحة البث
+        window.location.replace("browse.html");
 const firebaseConfig = {
     apiKey: "AIzaSyBJGIsMhKlucjvP9XY5MThhcPyZfQRAc0Y",
     authDomain: "x-project-94a25.firebaseapp.com",
