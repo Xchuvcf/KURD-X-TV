@@ -11,139 +11,141 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-const rowsContainer = document.getElementById('dynamicRowsContainer');
+// ربط عناصر واجهة المستخدم
+const categoriesContainer = document.getElementById('categoriesContainer');
+const channelsGridContainer = document.getElementById('channelsGridContainer');
 const searchInput = document.getElementById('searchInput');
+const currentSectionTitle = document.getElementById('currentSectionTitle');
 const themeToggleBtn = document.getElementById('themeToggleBtn');
-const filterFavBtn = document.getElementById('filterFavBtn');
 
-// مخزن محلي لحفظ معرفات (IDs) القنوات المفضلة بجهاز المستخدم
 let favorites = JSON.parse(localStorage.getItem('kurd_stream_favs')) || [];
-let allChannelsData = {}; 
 let categoriesData = {};
-let showOnlyFavorites = false;
+let channelsData = {};
+let activeCategoryId = "all"; // الافتراضي عرض كل القنوات
 
-// 🌙 1. تفعيل وضع النهار والليل المحفوظ بالذاكرة
+// 🌙 1. الوضع الليلي والنهاري المحفوظ بالذاكرة
 if (localStorage.getItem('theme') === 'light') {
     document.body.classList.add('light-theme');
     themeToggleBtn.innerText = "☀️";
 }
 themeToggleBtn.addEventListener('click', () => {
     document.body.classList.toggle('light-theme');
-    if (document.body.classList.contains('light-theme')) {
-        themeToggleBtn.innerText = "☀️";
-        localStorage.setItem('theme', 'light');
-    } else {
-        themeToggleBtn.innerText = "🌙";
-        localStorage.setItem('theme', 'dark');
-    }
+    const isLight = document.body.classList.contains('light-theme');
+    themeToggleBtn.innerText = isLight ? "☀️" : "🌙";
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
 });
 
-// ℹ 2. تفعيل نافذة المعلومات
+// ℹ 2. نافذة معلومات التطبيق المنبثقة
 const infoModal = document.getElementById('infoModal');
 document.getElementById('infoBtn').addEventListener('click', () => infoModal.style.display = 'flex');
 document.getElementById('closeInfoBtn').addEventListener('click', () => infoModal.style.display = 'none');
 
-// 📥 3. جلب البيانات الأساسية من Firebase وإدارتها محلياً للسرعة والفلترة المباشرة
+// 📥 3. جلب الأقسام والقنوات من Firebase وبناء الأزرار العلوية
 database.ref('categories').on('value', (catSnapshot) => {
     categoriesData = catSnapshot.val() || {};
-    fetchChannelsAndRender();
+    
+    database.ref('channels').on('value', (chSnapshot) => {
+        channelsData = chSnapshot.val() || {};
+        renderCategoriesChips();
+        renderChannelsGrid();
+    });
 });
 
-function fetchChannelsAndRender() {
-    database.ref('channels').on('value', (chSnapshot) => {
-        allChannelsData = chSnapshot.val() || {};
-        renderUI(); // بناء الواجهة
+// 🔘 4. بناء أزرار الأقسام الدائرية (Chips) في الأعلى كالصورة
+function renderCategoriesChips() {
+    categoriesContainer.innerHTML = '';
+
+    // أزرار ثابتة مساعدة (كل القنوات والمفضلة)
+    createChip("all", "الكل");
+    createChip("fav", "المفضلة ⭐");
+
+    // جلب بقية الأقسام ديناميكياً من الأدمن
+    Object.keys(categoriesData).forEach((catId) => {
+        createChip(catId, categoriesData[catId].name);
     });
 }
 
-// 🛠️ 4. دالة بناء الواجهة والتحكم بالبحث والمفضلة
-function renderUI() {
-    rowsContainer.innerHTML = '';
+function createChip(id, name) {
+    const chip = document.createElement('div');
+    chip.className = `category-chip ${activeCategoryId === id ? 'active' : ''}`;
+    chip.innerText = name;
+    
+    chip.addEventListener('click', () => {
+        activeCategoryId = id;
+        currentSectionTitle.innerText = id === 'all' ? 'كل القنوات' : id === 'fav' ? 'قنواتي المفضلة' : name;
+        
+        // تحديث حالة الأزرار النشطة
+        document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        
+        renderChannelsGrid();
+    });
+
+    categoriesContainer.appendChild(chip);
+}
+
+// 📺 5. دالة عرض القنوات بالشبكة والتحكم بالبحث والفلاتر
+function renderChannelsGrid() {
+    channelsGridContainer.innerHTML = '';
     const searchQuery = searchInput.value.toLowerCase().trim();
 
-    Object.keys(categoriesData).forEach((catId) => {
-        const cat = categoriesData[catId];
-        
-        // تصفية القنوات بناءً على البحث أو وضع المفضلة
-        let filteredChannels = [];
-        Object.keys(allChannelsData).forEach((chKey) => {
-            const channel = allChannelsData[chKey];
-            if (channel.category === catId) {
-                const matchesSearch = channel.name.toLowerCase().includes(searchQuery);
-                const matchesFav = !showOnlyFavorites || favorites.includes(chKey);
-                
-                if (matchesSearch && matchesFav) {
-                    filteredChannels.push({ key: chKey, ...channel });
-                }
-            }
-        });
+    Object.keys(channelsData).forEach((chKey) => {
+        const channel = channelsData[chKey];
+        const isFav = favorites.includes(chKey);
 
-        // إذا كان هناك قنوات تطابق الشروط في هذا القسم، نقوم بعرضه
-        if (filteredChannels.length > 0) {
-            const catTitle = document.createElement('div');
-            catTitle.className = 'category-title';
-            catTitle.innerText = cat.name;
-            rowsContainer.appendChild(catTitle);
+        // شروط الفلترة
+        const matchesSearch = channel.name.toLowerCase().includes(searchQuery);
+        let matchesCategory = false;
 
-            const grid = document.createElement('div');
-            grid.className = 'channels-grid';
+        if (activeCategoryId === "all") {
+            matchesCategory = true;
+        } else if (activeCategoryId === "fav") {
+            matchesCategory = isFav;
+        } else if (channel.category === activeCategoryId) {
+            matchesCategory = true;
+        }
 
-            filteredChannels.forEach((channel) => {
-                const box = document.createElement('div');
-                box.className = 'channel-box';
-                
-                const isFav = favorites.includes(channel.key);
+        if (matchesSearch && matchesCategory) {
+            const box = document.createElement('div');
+            box.className = 'channel-box';
+            box.innerHTML = `
+                <div class="heart-icon ${isFav ? 'is-favorite' : ''}">🤍</div>
+                <div class="channel-icon-wrapper" style="background-image: url('${channel.logo}')"></div>
+                <div class="channel-box-title">${channel.name}</div>
+            `;
 
-                box.innerHTML = `
-                    <div class="heart-icon ${isFav ? 'is-favorite' : ''}" data-key="${channel.key}">💙</div>
-                    <div class="channel-icon-wrapper" style="background-image: url('${channel.logo}')"></div>
-                    <div class="channel-box-title">${channel.name}</div>
-                `;
-
-                // الضغط على القلب لتفعيل وإلغاء المفضلة دون فتح القناة
-                const heart = box.querySelector('.heart-icon');
-                heart.addEventListener('click', (e) => {
-                    e.stopPropagation(); // منع انتقال الحدث لفتح القناة
-                    toggleFavorite(channel.key);
-                });
-
-                // الضغط على القناة لفتح صفحة المشغل المستقلة
-                box.addEventListener('click', () => {
-                    const encodedName = encodeURIComponent(channel.name);
-                    const encodedUrl = encodeURIComponent(channel.url);
-                    window.location.href = `player.html?name=${encodedName}&url=${encodedUrl}`;
-                });
-
-                grid.appendChild(box);
+            // إصلاح زر القلب ليعمل فوراً باللمس بدون تداخل مع فتح القناة
+            box.querySelector('.heart-icon').addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleFavorite(chKey);
             });
 
-            rowsContainer.appendChild(grid);
+            // فتح صفحة البث المخصصة للقناة عند النقر
+            box.addEventListener('click', () => {
+                const encodedName = encodeURIComponent(channel.name);
+                const encodedUrl = encodeURIComponent(channel.url);
+                window.location.href = `player.html?name=${encodedName}&url=${encodedUrl}`;
+            });
+
+            channelsGridContainer.appendChild(box);
         }
     });
 
-    if (rowsContainer.innerHTML === '') {
-        rowsContainer.innerHTML = `<p style="text-align:center; color:#888; margin-top:40px;">لا توجد قنوات تطابق بحثك أو مفضلتك حالياً.</p>`;
+    if (channelsGridContainer.innerHTML === '') {
+        channelsGridContainer.innerHTML = `<p style="grid-column: span 2; text-align:center; color:var(--text-muted); margin-top:30px;">لا توجد قنوات متوفرة.</p>`;
     }
 }
 
-// 💙 5. دالة إضافة/إزالة المفضلة من الجهاز
+// 💙 6. إضافة وإزالة المفضلة
 function toggleFavorite(chKey) {
     if (favorites.includes(chKey)) {
-        favorites = favorites.filter(key => key !== chKey);
+        favorites = favorites.filter(k => k !== chKey);
     } else {
         favorites.push(chKey);
     }
     localStorage.setItem('kurd_stream_favs', JSON.stringify(favorites));
-    renderUI(); // إعادة رسم التغيير على الفور
+    renderChannelsGrid(); // تحديث فوري للشاشة
 }
 
-// 🔍 6. الاستماع لحدث الكتابة في حقل البحث
-searchInput.addEventListener('input', renderUI);
-
-// ⭐ 7. الاستماع لزر تصفية المفضلة فقط
-filterFavBtn.addEventListener('click', () => {
-    showOnlyFavorites = !showOnlyFavorites;
-    filterFavBtn.style.background = showOnlyFavorites ? 'var(--accent-blue)' : 'none';
-    filterFavBtn.style.color = showOnlyFavorites ? '#fff' : 'var(--text-color)';
-    renderUI();
-});
+// 🔍 7. تفعيل شريط البحث أثناء الكتابة المباشرة
+searchInput.addEventListener('input', renderChannelsGrid);
