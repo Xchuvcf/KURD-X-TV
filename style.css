@@ -2,8 +2,18 @@
     --bg-dark: #0f0f0f;
     --card-bg: #1a1a1a;
     --text-color: #ffffff;
+    --search-bg: #1f1f1f;
     --border-radius: 20px;
-    --netflix-red: #E50914;
+    --accent-blue: #00a2ff;
+}
+
+/* الألوان الخاصة بالوضع الفاتح (Light Mode) */
+.light-theme {
+    --bg-dark: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-color: #1a1a1a;
+    --search-bg: #e4e6eb;
+    --accent-blue: #007acc;
 }
 
 body {
@@ -12,7 +22,7 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-color);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    -webkit-tap-highlight-color: transparent;
+    transition: background 0.3s, color 0.3s;
 }
 
 /* هيدر التطبيق للهاتف */
@@ -21,17 +31,16 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background-color: var(--bg-dark);
 }
 .header-left span {
     font-size: 1.4rem;
     margin-right: 15px;
     cursor: pointer;
+    user-select: none;
 }
 .app-title {
     font-size: 1.5rem;
     font-weight: bold;
-    letter-spacing: 0.5px;
 }
 
 /* شريط البحث */
@@ -42,19 +51,18 @@ body {
 .search-container input {
     width: 100%;
     padding: 14px 20px;
-    background-color: #1f1f1f;
+    background-color: var(--search-bg);
     border: none;
     border-radius: 30px;
-    color: #fff;
+    color: var(--text-color);
     font-size: 1rem;
     box-sizing: border-box;
     outline: none;
+    transition: background 0.3s;
 }
 
-/* الأقسام والشبكة الجدية المتوافقة مع الهاتف */
-.main-content {
-    padding: 0 20px 40px 20px;
-}
+/* الأقسام والشبكة */
+.main-content { padding: 0 20px 40px 20px; }
 .category-title {
     font-size: 1.2rem;
     margin: 25px 0 15px 0;
@@ -62,29 +70,25 @@ body {
     text-align: right;
 }
 
-/* عرض القنوات بشكل Grid ثنائي مثل الصورة */
 .channels-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* عمودين في الهاتف */
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
 }
 
-/* بطاقة القناة المحدثة كلياً */
+/* بطاقة القناة */
 .channel-box {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 15px;
     text-align: center;
     position: relative;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, background 0.3s;
     cursor: pointer;
 }
-.channel-box:active {
-    transform: scale(0.96);
-}
+.channel-box:active { transform: scale(0.96); }
 
-/* صورة شعار القناة الدائرية أو المربعة بحواف */
 .channel-icon-wrapper {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -93,77 +97,59 @@ body {
     background-size: cover;
     background-position: center;
     margin-bottom: 10px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
 }
 
 .channel-box-title {
     font-size: 1rem;
     font-weight: 500;
-    margin-top: 8px;
-    color: #f0f0f0;
+    color: var(--text-color);
 }
 
-/* أيقونة المفضلة فوق البطاقة */
+/* زر المفضلة التفاعلي */
 .heart-icon {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(0,0,0,0.5);
-    width: 24px;
-    height: 24px;
+    background: rgba(0,0,0,0.4);
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
-    color: #555;
+    font-size: 0.9rem;
+    color: #ccc;
+    transition: transform 0.2s, color 0.2s;
+    z-index: 5;
 }
-.heart-icon.active {
-    color: #00a2ff;
+.heart-icon.is-favorite {
+    color: var(--accent-blue);
+    transform: scale(1.1);
 }
 
-/* تصميم صفحة المشغل المنفصلة */
-.player-body {
-    background-color: #000;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+/* نافذة المعلومات المودال Pop-up */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center; align-items: center;
 }
-.back-to-browse {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    color: #fff;
-    text-decoration: none;
-    font-size: 1.1rem;
-    background: rgba(255,255,255,0.1);
-    padding: 8px 16px;
-    border-radius: 20px;
-}
-.standalone-player-container {
-    width: 90%;
-    max-width: 800px;
+.modal-content {
+    background: var(--card-bg);
+    color: var(--text-color);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    width: 80%; max-width: 400px;
     text-align: center;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    direction: rtl;
 }
-.video-frame {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: #111;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-}
-.video-frame video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+.close-modal {
+    background: var(--accent-blue);
+    color: white; border: none; padding: 10px 20px;
+    border-radius: 20px; margin-top: 20px; cursor: pointer;
 }
 
-/* شاشات التابلت والشاشات الأكبر */
-@media (min-width: 600px) {
-    .channels-grid {
-        grid-template-columns: repeat(4, 1fr); /* 4 أعمدة في الشاشات الأوسع */
-    }
-}
+@media (min-width: 600px) { .channels-grid { grid-template-columns: repeat(4, 1fr); } }
