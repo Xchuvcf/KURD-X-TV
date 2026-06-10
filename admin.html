@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const secretKey = urlParams.get('key');
+            const MY_SECRET_TOKEN = "Xcfo2026"; // الكود السري الخاص بك
+
+            if (secretKey !== MY_SECRET_TOKEN) {
+                // طرد فوري بدون انتظار تحميل الصفحة
+                window.location.replace("browse.html");
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kurd X Stream - Admin Control</title>
