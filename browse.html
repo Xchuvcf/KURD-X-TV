@@ -3,44 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kurd X Stream - Browse</title>
+    <title>Kurd X Stream</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
-<body>
+<body class="app-body">
 
-    <header class="navbar">
-        <div class="logo">Kurd X Stream</div>
-        <nav>
-            <a href="#" class="active">Home</a>
-            <a href="admin.html" id="adminLink" style="display:none;">Admin Panel</a>
-            <button id="logoutBtn">Logout</button>
-        </nav>
+    <header class="app-header">
+        <div class="header-left">
+            <span class="info-icon">ℹ</span>
+            <span class="theme-icon">🌙</span>
+        </div>
+        <div class="header-right">
+            <span class="app-title">Kurd X Stream</span>
+        </div>
     </header>
 
-    <section class="hero" id="heroVideoContainer">
-        <div class="hero-content">
-            <h1 id="heroTitle">Select a Channel</h1>
-            <p id="heroDesc">Enjoy streaming your favorite Kurdish and international channels live.</p>
-        </div>
-        <div class="video-wrapper">
-            <video id="mainPlayer" controls autoplay muted poster="https://images.unsplash.com/photo-1574375927938-d5a98e8edd86?q=80&w=1000"></video>
-        </div>
-    </section>
-<main class="main-container" id="dynamicRowsContainer"></main>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="ابحث عن قناة..." dir="rtl">
+    </div>
 
-        <div class="category-row">
-            <h2>Kurdish Channels</h2>
-            <div class="channels-slider" id="kurdishRow"></div>
-        </div>
-        
-        <div class="category-row">
-            <h2>Sports Channels</h2>
-            <div class="channels-slider" id="sportsRow"></div>
-        </div>
-    </main>
+    <main class="main-content" id="dynamicRowsContainer">
+        </main>
 
     <script src="app.js"></script>
 </body>
