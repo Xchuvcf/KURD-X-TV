@@ -1,230 +1,169 @@
 :root {
-    --main-bg: #141414;
+    --bg-dark: #0f0f0f;
+    --card-bg: #1a1a1a;
+    --text-color: #ffffff;
+    --border-radius: 20px;
     --netflix-red: #E50914;
-    --card-hover: #1f1f1f;
 }
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--main-bg);
-    color: #fff;
-    direction: ltr;
+    padding: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* Navbar */
-.navbar {
+/* هيدر التطبيق للهاتف */
+.app-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 4%;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
-    position: fixed;
-    width: 92%;
-    z-index: 100;
+    padding: 15px 20px;
+    background-color: var(--bg-dark);
 }
-.logo {
-    color: var(--netflix-red);
-    font-size: 28px;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-nav a {
-    color: #e5e5e5;
-    text-decoration: none;
-    margin-right: 20px;
-    transition: 0.3s;
-}
-nav a:hover, nav a.active { color: #fff; font-weight: bold; }
-#logoutBtn {
-    background-color: var(--netflix-red);
-    color: white;
-    border: none;
-    padding: 7px 15px;
+.header-left span {
+    font-size: 1.4rem;
+    margin-right: 15px;
     cursor: pointer;
-    border-radius: 4px;
+}
+.app-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
 }
 
-/* Hero Player */
-.hero {
+/* شريط البحث */
+.search-container {
+    padding: 0 20px;
+    margin-bottom: 20px;
+}
+.search-container input {
+    width: 100%;
+    padding: 14px 20px;
+    background-color: #1f1f1f;
+    border: none;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 1rem;
+    box-sizing: border-box;
+    outline: none;
+}
+
+/* الأقسام والشبكة الجدية المتوافقة مع الهاتف */
+.main-content {
+    padding: 0 20px 40px 20px;
+}
+.category-title {
+    font-size: 1.2rem;
+    margin: 25px 0 15px 0;
+    color: #aeaeae;
+    text-align: right;
+}
+
+/* عرض القنوات بشكل Grid ثنائي مثل الصورة */
+.channels-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* عمودين في الهاتف */
+    gap: 15px;
+}
+
+/* بطاقة القناة المحدثة كلياً */
+.channel-box {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    text-align: center;
     position: relative;
-    height: 70vh;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.channel-box:active {
+    transform: scale(0.96);
+}
+
+/* صورة شعار القناة الدائرية أو المربعة بحواف */
+.channel-icon-wrapper {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 18px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.channel-box-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 8px;
+    color: #f0f0f0;
+}
+
+/* أيقونة المفضلة فوق البطاقة */
+.heart-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.5);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    padding: 0 4%;
-    background: #000;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #555;
 }
-.hero-content {
-    position: absolute;
-    z-index: 10;
-    max-width: 40%;
-}
-.hero h1 { font-size: 3rem; margin-bottom: 10px; }
-.video-wrapper {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    overflow: hidden;
-}
-video {
-    width: 100%; height: 100%; object-fit: cover;
-    opacity: 0.6;
+.heart-icon.active {
+    color: #00a2ff;
 }
 
-/* Rows & Sliders */
-.main-container { padding: 40px 4%; }
-.category-row h2 { font-size: 1.4rem; color: #999; margin-bottom: 10px; }
-.channels-slider {
-    display: flex;
-    overflow-x: auto;
-    gap: 15px;
-    padding: 10px 0;
-}
-.channels-slider::-webkit-scrollbar { display: none; }
-
-.channel-card {
-    min-width: 200px;
-    height: 120px;
-    background-size: cover;
-    background-position: center;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    position: relative;
-}
-.channel-card:hover {
-    transform: scale(1.08);
-    z-index: 5;
-}
-.channel-title {
-    position: absolute;
-    bottom: 0; width: 100%;
-    background: rgba(0,0,0,0.7);
-    text-align: center;
-    padding: 5px 0;
-    font-size: 0.9rem;
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-}
-
-/* Admin Styles */
-.admin-body { display: flex; justify-content: center; align-items: center; padding: 5px; }
-.admin-container {
-    background: #1f1f1f; padding: 40px; border-radius: 8px; width: 450px; margin-top: 100px;
-}
-form input, form select, form button {
-    width: 100%; padding: 12px; margin: 10px 0;
-    background: #333; border: none; color: white; border-radius: 4px; box-sizing: border-box;
-}
-form button { background: var(--netflix-red); font-weight: bold; cursor: pointer;}
-.admin-list .adm-item {
-    display: flex; justify-content: space-between; background: #2b2b2b;
-    padding: 10px; margin: 5px 0; border-radius: 4px;
-}
-.adm-item button { background: #ff3333; border: none; color: white; cursor: pointer; padding: 5px 10px; border-radius: 3px; }
-.back-btn { display: block; text-align: center; margin-top: 20px; color: #aaa; text-decoration: none; }
-
-/* تنسيقات صفحة الهبوط الترحيبية (Netflix Landing Page) */
-.landing-body {
-    background-image: url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-b8b0-6c8de747f8cc/da512e60-fc6b-42ce-928f-7c15610ec1f2/IQ-en-20220502-popsignuptwoweeks-perspective_alpha_website_large.jpg');
-    background-size: cover;
-    background-position: center;
+/* تصميم صفحة المشغل المنفصلة */
+.player-body {
+    background-color: #000;
     height: 100vh;
-    position: relative;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
-
-/* طبقة التعتيم فوق الخلفية لإبراز النصوص */
-.landing-overlay {
+.back-to-browse {
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    background-image: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.3) 60%, rgba(0, 0, 0, 0.8) 100%);
-    z-index: 1;
-}
-
-.landing-header {
-    position: absolute;
-    top: 0;
-    width: 92%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 25px 4%;
-    z-index: 10;
-}
-
-.nav-signin-btn {
-    background-color: var(--netflix-red);
-    color: white;
+    top: 20px;
+    left: 20px;
+    color: #fff;
     text-decoration: none;
-    padding: 7px 17px;
-    font-weight: bold;
-    border-radius: 3px;
-    font-size: 0.95rem;
-    transition: background 0.2s;
+    font-size: 1.1rem;
+    background: rgba(255,255,255,0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
 }
-.nav-signin-btn:hover {
-    background-color: #b9090b;
-}
-
-.landing-content {
-    position: relative;
-    z-index: 10;
+.standalone-player-container {
+    width: 90%;
+    max-width: 800px;
     text-align: center;
-    max-width: 700px;
-    padding: 20px;
-    direction: rtl; /* لتنسيق النصوص العربية بشكل صحيح */
+}
+.video-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+}
+.video-frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
-.landing-content h1 {
-    font-size: 3.125rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-    line-height: 1.2;
+/* شاشات التابلت والشاشات الأكبر */
+@media (min-width: 600px) {
+    .channels-grid {
+        grid-template-columns: repeat(4, 1fr); /* 4 أعمدة في الشاشات الأوسع */
+    }
 }
-
-.landing-content h2 {
-    font-size: 1.625rem;
-    font-weight: 400;
-    margin-bottom: 25px;
-}
-
-.landing-content p {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-    color: #f3f3f3;
-}
-
-.cta-container {
-    margin-top: 30px;
-}
-
-.cta-btn {
-    background-color: var(--netflix-red);
-    color: white;
-    text-decoration: none;
-    padding: 15px 35px;
-    font-size: 1.5rem;
-    font-weight: bold;
-    border-radius: 4px;
-    display: inline-block;
-    transition: 0.2s ease;
-}
-
-.cta-btn:hover {
-    background-color: #b9090b;
-    transform: scale(1.02);
-}
-
-/* متجاوب مع الهواتف الذكية */
-@media (max-width: 768px) {
-    .landing-content h1 { font-size: 2rem; }
-    .landing-content h2 { font-size: 1.2rem; }
-    .landing-content p { font-size: 1rem; }
-    .cta-btn { padding: 12px 25px; font-size: 1.1rem; }
-}
-
