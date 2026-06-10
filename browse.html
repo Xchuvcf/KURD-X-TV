@@ -13,8 +13,8 @@
 
     <header class="app-header">
         <div class="header-left">
-            <span class="info-icon">ℹ</span>
-            <span class="theme-icon">🌙</span>
+            <span id="infoBtn">ℹ</span>
+            <span id="themeToggleBtn">🌙</span>
         </div>
         <div class="header-right">
             <span class="app-title">Kurd X Stream</span>
@@ -25,8 +25,20 @@
         <input type="text" id="searchInput" placeholder="ابحث عن قناة..." dir="rtl">
     </div>
 
-    <main class="main-content" id="dynamicRowsContainer">
-        </main>
+    <div style="padding: 0 20px; margin-bottom: 15px; text-align: right;">
+        <button id="filterFavBtn" style="background: none; border: 1px solid var(--accent-blue); color: var(--text-color); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;">عرض المفضلة فقط ⭐</button>
+    </div>
+
+    <main class="main-content" id="dynamicRowsContainer"></main>
+
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <h3>حول Kurd X Stream</h3>
+            <p>منصة احترافية تتيح لك مشاهدة القنوات الكردية والعالمية بث مباشر بأعلى جودة وتصميم ذكي متوافق تماماً مع الهواتف الذكية.</p>
+            <p style="font-size: 0.85rem; color: #888;">إصدار التطبيق v2.0 © 2026</p>
+            <button class="close-modal" id="closeInfoBtn">إغلاق</button>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
