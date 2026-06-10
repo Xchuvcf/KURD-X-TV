@@ -7,71 +7,58 @@ const firebaseConfig = {
     messagingSenderId: "773919021884",
     appId: "1:773919021884:web:35c525cfa8e71e91835c39"
 };
-
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 const rowsContainer = document.getElementById('dynamicRowsContainer');
-const mainPlayer = document.getElementById('mainPlayer');
-const heroTitle = document.getElementById('heroTitle');
 
-// دالة جلب البيانات وعرضها بأسلوب نتفليكس الديناميكي المطور
+// جلب الأقسام والقنوات معاً من Firebase
 database.ref('categories').on('value', (categoriesSnapshot) => {
-    rowsContainer.innerHTML = ''; // تفريغ الواجهة لإعادة البناء عند أي تحديث
+    rowsContainer.innerHTML = '';
 
     categoriesSnapshot.forEach((catChild) => {
         const catId = catChild.key;
         const catData = catChild.val();
 
-        // 1. إنشاء السطر الخاص بالقسم (Row)
-        const rowWrapper = document.createElement('div');
-        rowWrapper.className = 'category-row';
-        rowWrapper.innerHTML = `<h2>${catData.name}</h2>`;
+        // عنوان القسم
+        const catTitle = document.createElement('div');
+        catTitle.className = 'category-title';
+        catTitle.innerText = catData.name;
+        rowsContainer.appendChild(catTitle);
 
-        const slider = document.createElement('div');
-        slider.className = 'channels-slider';
-        slider.id = `slider-${catId}`;
+        // شبكة القنوات (Grid)
+        const grid = document.createElement('div');
+        grid.className = 'channels-grid';
+        grid.id = `grid-${catId}`;
+        rowsContainer.appendChild(grid);
 
-        rowWrapper.appendChild(slider);
-        rowsContainer.appendChild(rowWrapper);
-
-        // 2. جلب القنوات التابعة لهذا القسم فقط وعرض صورتها كخلفية للبطاقة
+        // جلب القنوات لهذا القسم
         database.ref('channels').orderByChild('category').equalTo(catId).once('value', (channelsSnapshot) => {
-            slider.innerHTML = '';
+            grid.innerHTML = '';
             
-            if(!channelsSnapshot.exists()) {
-                slider.innerHTML = `<p style="color:#666; font-size:0.9rem; padding-left:10px;">No channels in this category yet.</p>`;
-            }
-
             channelsSnapshot.forEach((chChild) => {
                 const channel = chChild.val();
 
-                // بناء بطاقة القناة بصورتها
-                const card = document.createElement('div');
-                card.className = 'channel-card';
-                card.style.backgroundImage = `url('${channel.logo}')`; // هنا يتم تعيين صورة القناة المضافة من الأدمن
-                card.innerHTML = `<div class="channel-title">${channel.name}</div>`;
+                // بناء بطاقة الهاتف المماثلة للصورة تماماً
+                const box = document.createElement('div');
+                box.className = 'channel-box';
+                
+                box.innerHTML = `
+                    <div class="heart-icon active">💙</div>
+                    <div class="channel-icon-wrapper" style="background-image: url('${channel.logo}')"></div>
+                    <div class="channel-box-title">${channel.name}</div>
+                `;
 
-                // عند الضغط يتم تشغيل القناة في المشغل العلوي للموقع
-                card.onclick = () => {
-                    playChannel(channel.url, channel.name);
+                // حدث الانتقال لصفحة المشغل المنفصلة الخاصة بالقناة
+                box.onclick = () => {
+                    const encodedName = encodeURIComponent(channel.name);
+                    const encodedUrl = encodeURIComponent(channel.url);
+                    // فتح صفحة مستقلة وتمرير البيانات في الرابط
+                    window.location.href = `player.html?name=${encodedName}&url=${encodedUrl}`;
                 };
 
-                slider.appendChild(card);
+                grid.appendChild(box);
             });
         });
     });
-});
-
-function playChannel(url, name) {
-    heroTitle.innerText = name;
-    mainPlayer.src = url;
-    mainPlayer.muted = false;
-    mainPlayer.play().catch(e => console.log("Click to play video."));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// إظهار زر الأدمن للمطور في الهيدر إذا كان مسجلاً للدخول
-firebase.auth().onAuthStateChanged((user) => {
-    document.getElementById('adminLink').style.display = user ? 'block' : 'none';
 });
