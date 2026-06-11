@@ -1,14 +1,3 @@
-// 🔐 نظام الحماية الصارم ومنع الدخول لغير المالك
-(function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const secretKey = urlParams.get('key');
-    
-    // يمكنك تغيير الكود السري "Xcfo2026" إلى أي كلمة سرية قوية تختارها أنت
-    const MY_SECRET_TOKEN = "Xcfo2026"; 
-
-    if (secretKey !== MY_SECRET_TOKEN) {
-        // إذا كان الرابط لا يحتوي على الكود الصحيح، يتم طرده فوراً وتوجيهه لصفحة البث
-        window.location.replace("browse.html");
 const firebaseConfig = {
     apiKey: "AIzaSyBJGIsMhKlucjvP9XY5MThhcPyZfQRAc0Y",
     authDomain: "x-project-94a25.firebaseapp.com",
@@ -23,49 +12,70 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 const auth = firebase.auth();
 
-// تفعيل الواجهات حسب تسجيل الدخول
+const loginBox = document.getElementById('loginBox');
+const adminPanelBox = document.getElementById('adminPanelBox');
+
+// 🔐 فحص الحماية الذكي لمنع الطرد عند تسجيل الدخول
 auth.onAuthStateChanged((user) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const secretKey = urlParams.get('key');
+    const MY_SECRET_TOKEN = "Xcfo2026"; // الكود السري الخاص بك
+
     if (user) {
-        document.getElementById('loginBox').style.display = 'none';
-        document.getElementById('adminPanelBox').style.display = 'block';
+        // إذا كان المستخدم مسجل دخوله مسبقاً (الأدمن الحقيقي)، نفتح اللوحة فوراً ونخفي صندوق الدخول
+        loginBox.style.display = 'none';
+        adminPanelBox.style.display = 'block';
         loadCategories();
         loadAdminChannels();
     } else {
-        document.getElementById('loginBox').style.display = 'block';
-        document.getElementById('adminPanelBox').style.display = 'none';
+        // إذا لم يكن مسجل دخول، نتحقق هل يملك الكود السري في الرابط؟
+        if (secretKey === MY_SECRET_TOKEN) {
+            // الكود صحيح، نسمح له برؤية واجهة تسجيل الدخول ليضع حسابه الباسورد
+            loginBox.style.display = 'block';
+            adminPanelBox.style.display = 'none';
+        } else {
+            // ليس مسجل دخول ولا يملك الكود السري؟ طرد فوري!
+            window.location.replace("browse.html");
+        }
     }
 });
 
-// تسجيل الدخول
+// 🔑 معالجة تسجيل الدخول للأدمن
 document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    auth.signInWithEmailAndPassword(document.getElementById('adminEmail').value, document.getElementById('adminPassword').value)
-        .catch(err => alert("خطأ في البيانات"));
+    const email = document.getElementById('adminEmail').value;
+    const password = document.getElementById('adminPassword').value;
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+            alert("مرحباً بك مجدداً أيها المالك!");
+        })
+        .catch(err => alert("خطأ في البريد الإلكتروني أو كلمة المرور الخاصة بالمالك."));
 });
 
-document.getElementById('adminLogoutBtn').addEventListener('click', () => auth.signOut());
-
-// 📁 1. إضافة قسم جديد لقاعدة البيانات
-document.getElementById('addCategoryForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const catName = document.getElementById('catName').value;
-    // حفظ باسم مفرس لسهولة التعامل (بدون فراغات)
-    const catId = catName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-
-    database.ref('categories/' + catId).set({
-        name: catName
-    }).then(() => {
-        document.getElementById('addCategoryForm').reset();
-        alert('تم إضافة القسم الجديد!');
+// 🚪 تسجيل الخروج
+document.getElementById('adminLogoutBtn').addEventListener('click', () => {
+    auth.signOut().then(() => {
+        window.location.replace("browse.html"); // عند الخروج يتم طرده للصفحة الرئيسية مباشرة
     });
 });
 
-// 📁 2. جلب الأقسام وعرضها وحذفها وتحديث القائمة المنسدلة للخيارات
+// 📁 إدارة الأقسام (إضافة وجلب وحذف)
+document.getElementById('addCategoryForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const catName = document.getElementById('catName').value;
+    const catId = catName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+    database.ref('categories/' + catId).set({ name: catName })
+        .then(() => {
+            document.getElementById('addCategoryForm').reset();
+        });
+});
+
 function loadCategories() {
     database.ref('categories').on('value', (snapshot) => {
         const selectHasCat = document.getElementById('chCategory');
         const listContainer = document.getElementById('adminCategoriesList');
-        
         selectHasCat.innerHTML = '';
         listContainer.innerHTML = '';
 
@@ -73,28 +83,24 @@ function loadCategories() {
             const catId = child.key;
             const catData = child.val();
 
-            // إضافة للخيارات داخل فورم القنوات
             let option = document.createElement('option');
             option.value = catId;
             option.innerText = catData.name;
             selectHasCat.appendChild(option);
 
-            // إضافة لقائمة الحذف بالأدمن
             let item = document.createElement('div');
             item.className = 'adm-item';
-            item.innerHTML = `<span>📁 ${catData.name}</span> <button onclick="deleteCategory('${catId}')" style="background:#ff3333; padding:2px 6px;">حذف</button>`;
+            item.innerHTML = `<span>📁 ${catData.name}</span> <button onclick="deleteCategory('${catId}')" style="background:#ff3333; padding:2px 6px; border:none; color:#fff; border-radius:4px; cursor:pointer;">حذف</button>`;
             listContainer.appendChild(item);
         });
     });
 }
 
 window.deleteCategory = function(catId) {
-    if(confirm("هل تريد حذف هذا القسم؟ سيختفي من واجهة المستخدم أيضاً.")) {
-        database.ref('categories/' + catId).remove();
-    }
+    if(confirm("هل تريد حذف هذا القسم؟")) database.ref('categories/' + catId).remove();
 }
 
-// 📺 3. إضافة قناة جديدة تحتوي على اسم، رابط بث، ورابط الصورة
+// 📺 إدارة القنوات
 document.getElementById('addChannelForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('chName').value;
@@ -102,15 +108,13 @@ document.getElementById('addChannelForm').addEventListener('submit', (e) => {
     const logo = document.getElementById('chLogo').value;
     const category = document.getElementById('chCategory').value;
 
-    database.ref('channels').push({
-        name: name, url: url, logo: logo, category: category
-    }).then(() => {
-        document.getElementById('addChannelForm').reset();
-        alert('تمت إضافة القناة مع صورتها بنجاح!');
-    });
+    database.ref('channels').push({ name: name, url: url, logo: logo, category: category })
+        .then(() => {
+            document.getElementById('addChannelForm').reset();
+            alert('تمت إضافة القناة بنجاح!');
+        });
 });
 
-// جلب القنوات في صفحة الأدمن
 function loadAdminChannels() {
     database.ref('channels').on('value', (snapshot) => {
         const adminChannelsList = document.getElementById('adminChannelsList');
@@ -120,7 +124,7 @@ function loadAdminChannels() {
             const key = child.key;
             let item = document.createElement('div');
             item.className = 'adm-item';
-            item.innerHTML = `<span>📺 ${data.name} (في قسم: ${data.category})</span><button onclick="deleteChannel('${key}')">Delete</button>`;
+            item.innerHTML = `<span>📺 ${data.name}</span> <button onclick="deleteChannel('${key}')" style="background:#ff3333; padding:2px 6px; border:none; color:#fff; border-radius:4px; cursor:pointer;">حذف</button>`;
             adminChannelsList.appendChild(item);
         });
     });
