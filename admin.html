@@ -1,18 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-        (function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const secretKey = urlParams.get('key');
-            const MY_SECRET_TOKEN = "Xcfo2026"; // الكود السري الخاص بك
-
-            if (secretKey !== MY_SECRET_TOKEN) {
-                // طرد فوري بدون انتظار تحميل الصفحة
-                window.location.replace("browse.html");
-            }
-        })();
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kurd X Stream - Admin Control</title>
@@ -23,7 +11,7 @@
 </head>
 <body class="admin-body">
 
-    <div class="admin-container" id="loginBox">
+    <div class="admin-container" id="loginBox" style="display: none;">
         <h2>Admin Sign In</h2>
         <form id="adminLoginForm">
             <input type="email" id="adminEmail" placeholder="Owner Email" required>
@@ -38,11 +26,10 @@
         <button id="adminLogoutBtn" style="background:#555; margin-bottom:20px;">Logout from Admin</button>
         
         <div class="admin-sections-wrapper" style="display: flex; gap: 20px;">
-            
             <div style="flex: 1; background: #252525; padding: 15px; border-radius: 6px;">
                 <h3>📁 Manage Categories</h3>
                 <form id="addCategoryForm">
-                    <input type="text" id="catName" placeholder="New Category Name (e.g. Movies)" required>
+                    <input type="text" id="catName" placeholder="New Category Name" required>
                     <button type="submit" style="background: #0078d4;">Add Category</button>
                 </form>
                 <div id="adminCategoriesList" class="admin-list"></div>
@@ -53,24 +40,19 @@
                 <form id="addChannelForm">
                     <input type="text" id="chName" placeholder="Channel Name" required>
                     <input type="url" id="chUrl" placeholder="Stream URL (.m3u8)" required>
-                    <input type="url" id="chLogo" placeholder="Channel Poster/Image URL" required>
-                    
+                    <input type="url" id="chLogo" placeholder="Channel Poster URL" required>
                     <label style="font-size: 0.8rem; color: #aaa;">Select Category:</label>
-                    <select id="chCategory" required>
-                        </select>
-                    
+                    <select id="chCategory" required></select>
                     <button type="submit">Add Channel</button>
                 </form>
             </div>
-
         </div>
 
         <h3 style="margin-top: 30px;">📋 Current Channels</h3>
         <div id="adminChannelsList" class="admin-list"></div>
         <a href="browse.html" class="back-btn">← Go to Stream</a>
     </div>
-    
-    <script src="admin.js?v=1"></script>
+
+    <script src="admin.js?v=2"></script>
 </body>
 </html>
-
