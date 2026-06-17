@@ -3,57 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero TV - Player</title>
+    <title>Zero TV - Pro Player</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     
     <style>
-        /* زر تفعيل ملء الشاشة الاحترافي */
-        .fullscreen-btn {
-            background-color: var(--accent-blue, #00a2ff);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(0, 162, 255, 0.4);
-            transition: transform 0.2s;
-        }
-        .fullscreen-btn:active {
-            transform: scale(0.95);
+        /* تصميم هيكل المشغل الاحترافي */
+        .player-body {
+            background-color: #050505;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            font-family: sans-serif;
         }
 
-        /* تنسيق مشغل الفيديو الأساسي لمنع مشاكل الأبعاد */
+        .video-centered-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: #000;
+            position: relative;
+        }
+
+        /* حاوي الفيديو والمشغل الذكي */
+        .video-wrapper-standalone {
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         #standaloneVideoPlayer {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            background: #000;
+            /* الافتراضي contain لضمان عدم خروج أي جزء من البث نهائياً */
+            object-fit: contain; 
+            transition: object-fit 0.2s;
+        }
+
+        /* شريط الأدوات والميزات أسفل المشغل */
+        .player-controls-panel {
+            background: #141416;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #232326;
+        }
+
+        .control-btn {
+            background: #1d1d20;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .control-btn:active { transform: scale(0.95); }
+        .control-btn.active { background: var(--accent-blue, #00a2ff); }
+
+        /* نافذة التحكم في أبعاد الشاشة المصغرة */
+        .ratio-badge {
+            background: #00a2ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
         }
     </style>
 </head>
 <body class="player-body">
 
-    <header class="player-header">
-        <a href="browse.html" class="back-btn-player">✕</a>
+    <header class="player-header" style="background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));">
+        <a href="browse.html" class="back-btn-player" style="font-size: 1.5rem; padding: 5px 10px;">✕</a>
         <h2 class="player-ch-title" id="playingChannelTitle">Loading...</h2>
-        <div style="width:20px;"></div>
+        <div style="width:30px;"></div> 
     </header>
 
     <div class="video-centered-container">
-        <div class="video-wrapper-standalone">
-            <video id="standaloneVideoPlayer" controls autoplay playsinline></video>
+        <div class="video-wrapper-standalone" id="videoContainer">
+            <video id="standaloneVideoPlayer" autoplay playsinline></video>
         </div>
     </div>
 
-    <div style="text-align: center; width: 100%;">
-        <button class="fullscreen-btn" id="goFullscreenBtn">📺 تكبير الشاشة بالكامل</button>
-    </div>
+    <div class="player-controls-panel">
+        <button class="control-btn" id="muteToggleBtn">🔊 كتم</button>
 
-    <div style="height: 20px;"></div>
+        <button class="control-btn" id="skipBackBtn">⏪ -10ث</button>
+
+        <button class="control-btn" id="aspectRatioBtn">
+            <span>📺 الأبعاد:</span>
+            <span class="ratio-badge" id="ratioStatus">كامل البث</span>
+        </button>
+
+        <button class="control-btn" id="goFullscreenBtn" style="background: var(--accent-blue, #00a2ff);">fullscreen 📱</button>
+    </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -61,21 +120,30 @@
         const channelStreamUrl = urlParams.get('url');
 
         const video = document.getElementById('standaloneVideoPlayer');
+        const videoContainer = document.getElementById('videoContainer');
         const fullscreenBtn = document.getElementById('goFullscreenBtn');
+        const aspectRatioBtn = document.getElementById('aspectRatioBtn');
+        const ratioStatus = document.getElementById('ratioStatus');
+        const muteToggleBtn = document.getElementById('muteToggleBtn');
+        const skipBackBtn = document.getElementById('skipBackBtn');
+
+        let currentRatioMode = 0; // 0 = contain (كامل البث المضمون), 1 = cover (ملء الشاشة الزوم), 2 = fill (تمطيط العرض بالكامل)
 
         if (channelName && channelStreamUrl) {
             document.getElementById('playingChannelTitle').innerText = decodeURIComponent(channelName);
             const decodedUrl = decodeURIComponent(channelStreamUrl);
 
-            // تشغيل البث بشكل مستقر وثابت
             if (Hls.isSupported()) {
-                const hls = new Hls({
-                    maxMaxBufferLength: 10 // لضمان سرعة تحميل البث الحي على الهواتف
-                });
+                const hls = new Hls({ maxMaxBufferLength: 10 });
                 hls.loadSource(decodedUrl);
                 hls.attachMedia(video);
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play().catch(e => console.log("Autoplay blocked, waiting for user activation"));
+                    video.play().catch(() => {
+                        // كتم الصوت تلقائياً إذا منع المتصفح التشغيل التلقائي المسموع
+                        video.muted = true;
+                        muteToggleBtn.innerText = "🔇 تشغيل الصوت";
+                        video.play();
+                    });
                 });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = decodedUrl;
@@ -87,36 +155,71 @@
             document.getElementById('playingChannelTitle').innerText = "خطأ في تشغيل القناة";
         }
 
-        // 🔘 الطريقة الأصلية والمباشرة للتكبير لضمان عدم توقف الإشارة أو كسر الفيديو
+        // 🔘 1. زر التحكم بالأبعاد (حل مشكلة خروج البث نهائياً)
+        aspectRatioBtn.addEventListener('click', () => {
+            currentRatioMode = (currentRatioMode + 1) % 3;
+            
+            if (currentRatioMode === 0) {
+                video.style.objectFit = 'contain';
+                ratioStatus.innerText = "كامل البث"; // يظهر البث كاملاً 100% بدون زوم وبدون خروج أي زاوية
+            } else if (currentRatioMode === 1) {
+                video.style.objectFit = 'cover';
+                ratioStatus.innerText = "زوم كامل"; // يملأ الشاشة كلها ولكن قد يقتص أطرافاً بسيطة
+            } else if (currentRatioMode === 2) {
+                video.style.objectFit = 'fill';
+                video.style.width = '100vw';
+                video.style.height = '100vh';
+                ratioStatus.innerText = "تمديد"; // يمدد الفيديو ليمطّه على أبعاد الشاشة دون حذف أي جزء ودون حواف
+            }
+        });
+
+        // 🔊 2. زر كتم وتفعيل الصوت
+        muteToggleBtn.addEventListener('click', () => {
+            if (video.muted) {
+                video.muted = false;
+                muteToggleBtn.innerText = "🔊 كتم";
+            } else {
+                video.muted = true;
+                muteToggleBtn.innerText = "🔇 تشغيل الصوت";
+            }
+        });
+
+        // ⏪ 3. زر إرجاع البث 10 ثوانٍ للخلف (إذا كان البث يدعم التخزين المؤقت)
+        skipBackBtn.addEventListener('click', () => {
+            video.currentTime = Math.max(0, video.currentTime - 10);
+        });
+
+        // 📱 4. زر ملء الشاشة والتدوير الذكي
         fullscreenBtn.addEventListener('click', () => {
-            if (video.requestFullscreen) {
-                video.requestFullscreen();
-            } else if (video.webkitRequestFullscreen) { 
-                video.webkitRequestFullscreen();
+            if (videoContainer.requestFullscreen) {
+                videoContainer.requestFullscreen();
+            } else if (videoContainer.webkitRequestFullscreen) { 
+                videoContainer.webkitRequestFullscreen();
             } else if (video.webkitEnterFullscreen) { 
-                video.webkitEnterFullscreen(); /* مخصصة لهواتف الآيفون وسفاري */
+                video.webkitEnterFullscreen();
             }
 
-            // تدوير الشاشة تلقائياً للوضع الأفقي (العرضي)
             if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch((err) => {
-                    console.log("التدوير التلقائي يحتاج تفعيل خاصية التدوير في الهاتف نفسه.");
+                screen.orientation.lock('landscape').catch(() => {
+                    console.log("يرجى تفعيل تدوير الشاشة التلقائي من لوحة الهاتف أولاً.");
                 });
             }
         });
 
-        // ضبط الأبعاد المباشرة لمنع ظهور الحواف السوداء دون الخروج عن الشاشة
-        const handleResize = () => {
+        // تأمين ثبات الأبعاد عند الدخول والخروج من وضع الفول سكرين
+        const syncOrientationDimensions = () => {
             const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
             if (isFullscreen) {
-                video.style.objectFit = 'cover';
+                video.style.width = '100vw';
+                video.style.height = '100vh';
             } else {
-                video.style.objectFit = 'contain';
+                video.style.width = '100%';
+                video.style.height = '100%';
             }
         };
 
-        document.addEventListener('fullscreenchange', handleResize);
-        document.addEventListener('webkitfullscreenchange', handleResize);
+        document.addEventListener('fullscreenchange', syncOrientationDimensions);
+        document.addEventListener('webkitfullscreenchange', syncOrientationDimensions);
     </script>
 </body>
 </html>
