@@ -49,62 +49,75 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const channelName = urlParams.get('name');
-        const channelStreamUrl = urlParams.get('url');
+const channelName = urlParams.get('name');
+const channelStreamUrl = urlParams.get('url');
 
-        const video = document.getElementById('standaloneVideoPlayer');
-        const videoContainer = document.getElementById('videoContainer');
-        const fullscreenBtn = document.getElementById('goFullscreenBtn');
+const video = document.getElementById('standaloneVideoPlayer');
+const videoContainer = document.getElementById('videoContainer');
+const fullscreenBtn = document.getElementById('goFullscreenBtn');
 
-        if (channelName && channelStreamUrl) {
-            document.getElementById('playingChannelTitle').innerText = decodeURIComponent(channelName);
-            const decodedUrl = decodeURIComponent(channelStreamUrl);
+if (channelName && channelStreamUrl) {
+    document.getElementById('playingChannelTitle').innerText = decodeURIComponent(channelName);
+    const decodedUrl = decodeURIComponent(channelStreamUrl);
 
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(decodedUrl);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play();
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = decodedUrl;
-                video.addEventListener('loadedmetadata', function() {
-                    video.play();
-                });
-            }
-        } else {
-            document.getElementById('playingChannelTitle').innerText = "خطأ في تشغيل القناة";
-        }
-
-        // 🔘 منطق جعل الشاشة كاملة وتدويرها تلقائياً للهواتف
-        fullscreenBtn.addEventListener('click', () => {
-            if (videoContainer.requestFullscreen) {
-                videoContainer.requestFullscreen();
-            } else if (videoContainer.webkitRequestFullscreen) { /* متصفحات آيفون وسفاري القديمة */
-                videoContainer.webkitRequestFullscreen();
-            } else if (video.webkitEnterFullscreen) { /* دعم مباشر للآيفون داخل عنصر الفيديو */
-                video.webkitEnterFullscreen();
-            }
-
-            // محاولة تدوير الشاشة تلقائياً للوضع الأفقي (Landscape) عند التكبير إذا سمح الهاتف بذلك
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch((err) => {
-                    console.log("التدوير التلقائي يحتاج تفعيل خاصية التدوير في الهاتف نفسه أولاً.");
-                });
-            }
+    if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(decodedUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            video.play();
         });
-
-        // تحسين أبعاد الفيديو أثناء وضع ملء الشاشة الكاملة ليمتد تماماً
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                video.style.width = '100vw';
-                video.style.height = '100vh';
-            } else {
-                video.style.width = '100%';
-                video.style.height = '100%';
-            }
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = decodedUrl;
+        video.addEventListener('loadedmetadata', function() {
+            video.play();
         });
+    }
+} else {
+    document.getElementById('playingChannelTitle').innerText = "خطأ في تشغيل القناة";
+}
+
+// 🔘 تحسين تدوير الشاشة وتكبيرها لمنع خروج البث والحواف السوداء
+fullscreenBtn.addEventListener('click', () => {
+    // 1. تفعيل وضع ملء الشاشة للحاوي أولاً
+    if (videoContainer.requestFullscreen) {
+        videoContainer.requestFullscreen();
+    } else if (videoContainer.webkitRequestFullscreen) { 
+        videoContainer.webkitRequestFullscreen();
+    } else if (video.webkitEnterFullscreen) { 
+        video.webkitEnterFullscreen();
+    }
+
+    // 2. تدوير الشاشة تلقائياً للوضع الأفقي
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch((err) => {
+            console.log("التدوير التلقائي يحتاج تفعيل خاصية التدوير في الهاتف نفسه أولاً.");
+        });
+    }
+});
+
+// 🔥 الحل السحري: مراقبة تغير وضع الشاشة وضبط أبعاد الفيديو بدقة بالغة
+document.addEventListener('fullscreenchange', handleFullscreenResize);
+document.addEventListener('webkitfullscreenchange', handleFullscreenResize);
+
+function handleFullscreenResize() {
+    // التحقق هل المتصفح في وضع ملء الشاشة حالياً؟
+    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+
+    if (isFullscreen) {
+        // عند التكبير: نلغي الحواف السوداء ونجعل الفيديو يملأ الشاشة تماماً بدون أي خروج خارجي
+        video.style.setProperty('width', '100vw', 'important');
+        video.style.setProperty('height', '100vh', 'important');
+        video.style.setProperty('object-fit', 'cover', 'important'); 
+        videoContainer.style.background = "#000";
+    } else {
+        // عند التصغير: يعود الوضع للأبعاد الطبيعية المتجاوبة داخل الصندوق المخصص له
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.object-fit = 'contain';
+    }
+}
+
     </script>
 </body>
 </html>
