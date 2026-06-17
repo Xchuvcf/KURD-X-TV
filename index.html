@@ -5,25 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kurd X Stream - Welcome</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* تنسيقات مخصصة وحصرية لصفحة الترحيب لتبدو كتطبيق هاتف حقيقي */
+        .welcome-body {
+            background: radial-gradient(circle at center, #1a1a24 0%, #09090b 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .welcome-container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            animation: fadeInWelcome 1s ease-out;
+        }
+
+        /* تصميم الشعار المضيء */
+        .welcome-logo {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(0, 162, 255, 0.6);
+        }
+
+        .welcome-logo span {
+            color: var(--accent-blue, #00a2ff);
+            text-shadow: 0 0 40px rgba(0, 162, 255, 0.8);
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted, #8e8e93);
+            margin-bottom: 40px;
+            line-height: 1.6;
+            direction: rtl;
+        }
+
+        /* زر الدخول التفاعلي الكبير */
+        .enter-app-btn {
+            display: inline-block;
+            width: 85%;
+            background-color: var(--accent-blue, #00a2ff);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 35px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            box-shadow: 0 8px 25px rgba(0, 162, 255, 0.35);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .enter-app-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 4px 15px rgba(0, 162, 255, 0.5);
+            background-color: #008cd4;
+        }
+
+        /* تأثيرات حركية عند فتح الصفحة */
+        @keyframes fadeInWelcome {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* لمسة جمالية سفلية */
+        .welcome-footer {
+            position: absolute;
+            bottom: 25px;
+            font-size: 0.8rem;
+            color: #444;
+            letter-spacing: 0.5px;
+        }
+    </style>
 </head>
-<body class="landing-body">
+<body class="welcome-body">
 
-    <header class="landing-header">
-        <div class="logo">Kurd X Stream</div>
-        <a href="browse.html" class="nav-signin-btn">Sign In</a>
-    </header>
-
-    <main class="landing-content">
-        <h1>قنوات ومحتوى غير محدود، بث مباشر ومزيد.</h1>
-        <h2>شاهد في أي مكان. ألغِ الاشتراك في أي وقت.</h2>
-        <p>جاهز للمشاهدة؟ اضغط على الزر أدناه للدخول إلى عالم البث المباشر لقنواتك المفضلة.</p>
+    <div class="welcome-container">
+        <h1 class="welcome-logo">Kurd X <span>Stream</span></h1>
         
-        <div class="cta-container">
-            <a href="browse.html" class="cta-btn">ابدأ المشاهدة الآن &gt;</a>
-        </div>
-    </main>
+        <p class="welcome-subtitle">
+            باشترین سەکۆ بۆ سەیرکردنی کەناڵە کوردی و جیهانییەکان بە شێوەی ڕاستەوخۆ و بە کوالێتی بەرز.
+        </p>
+        
+        <a href="browse.html" class="enter-app-btn">تەماشاکردن دەستپێبکە ⚡</a>
+    </div>
 
-    <div class="landing-overlay"></div>
+    <div class="welcome-footer">v3.0 • Powered by Firebase</div>
 
 </body>
 </html>
