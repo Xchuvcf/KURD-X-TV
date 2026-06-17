@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kurd X Stream - Player</title>
+    <title>Zero TV - Player</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     
@@ -13,7 +13,7 @@
             background-color: var(--accent-blue, #00a2ff);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border-radius: 30px;
             font-size: 1rem;
             font-weight: bold;
@@ -26,22 +26,12 @@
             transform: scale(0.95);
         }
 
-        /* لضمان تمدد الحاوي بالكامل وإخفاء أي زوائد أثناء وضع الـ Fullscreen */
-        #videoContainer:fullscreen {
-            width: 100vw;
-            height: 100vh;
-            background-color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #videoContainer:-webkit-full-screen {
-            width: 100vw;
-            height: 100vh;
-            background-color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* تنسيق مشغل الفيديو الأساسي لمنع مشاكل الأبعاد */
+        #standaloneVideoPlayer {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
         }
     </style>
 </head>
@@ -54,7 +44,7 @@
     </header>
 
     <div class="video-centered-container">
-        <div class="video-wrapper-standalone" id="videoContainer">
+        <div class="video-wrapper-standalone">
             <video id="standaloneVideoPlayer" controls autoplay playsinline></video>
         </div>
     </div>
@@ -71,19 +61,21 @@
         const channelStreamUrl = urlParams.get('url');
 
         const video = document.getElementById('standaloneVideoPlayer');
-        const videoContainer = document.getElementById('videoContainer');
         const fullscreenBtn = document.getElementById('goFullscreenBtn');
 
         if (channelName && channelStreamUrl) {
             document.getElementById('playingChannelTitle').innerText = decodeURIComponent(channelName);
             const decodedUrl = decodeURIComponent(channelStreamUrl);
 
+            // تشغيل البث بشكل مستقر وثابت
             if (Hls.isSupported()) {
-                const hls = new Hls();
+                const hls = new Hls({
+                    maxMaxBufferLength: 10 // لضمان سرعة تحميل البث الحي على الهواتف
+                });
                 hls.loadSource(decodedUrl);
                 hls.attachMedia(video);
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play();
+                    video.play().catch(e => console.log("Autoplay blocked, waiting for user activation"));
                 });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = decodedUrl;
@@ -95,43 +87,36 @@
             document.getElementById('playingChannelTitle').innerText = "خطأ في تشغيل القناة";
         }
 
-        // 🔘 تحسين تدوير الشاشة وتكبيرها لمنع خروج البث والحواف السوداء
+        // 🔘 الطريقة الأصلية والمباشرة للتكبير لضمان عدم توقف الإشارة أو كسر الفيديو
         fullscreenBtn.addEventListener('click', () => {
-            // 1. تفعيل وضع ملء الشاشة للحاوي أولاً
-            if (videoContainer.requestFullscreen) {
-                videoContainer.requestFullscreen();
-            } else if (videoContainer.webkitRequestFullscreen) { 
-                videoContainer.webkitRequestFullscreen();
+            if (video.requestFullscreen) {
+                video.requestFullscreen();
+            } else if (video.webkitRequestFullscreen) { 
+                video.webkitRequestFullscreen();
             } else if (video.webkitEnterFullscreen) { 
-                video.webkitEnterFullscreen();
+                video.webkitEnterFullscreen(); /* مخصصة لهواتف الآيفون وسفاري */
             }
 
-            // 2. تدوير الشاشة تلقائياً للوضع الأفقي
+            // تدوير الشاشة تلقائياً للوضع الأفقي (العرضي)
             if (screen.orientation && screen.orientation.lock) {
                 screen.orientation.lock('landscape').catch((err) => {
-                    console.log("التدوير التلقائي يحتاج تفعيل خاصية التدوير في الهاتف نفسه أولاً.");
+                    console.log("التدوير التلقائي يحتاج تفعيل خاصية التدوير في الهاتف نفسه.");
                 });
             }
         });
 
-        // 🔥 مراقبة تغير وضع الشاشة وضبط أبعاد الفيديو بدقة بالغة
-        document.addEventListener('fullscreenchange', handleFullscreenResize);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenResize);
-
-        function handleFullscreenResize() {
+        // ضبط الأبعاد المباشرة لمنع ظهور الحواف السوداء دون الخروج عن الشاشة
+        const handleResize = () => {
             const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-
             if (isFullscreen) {
-                video.style.setProperty('width', '100vw', 'important');
-                video.style.setProperty('height', '100vh', 'important');
-                video.style.setProperty('object-fit', 'cover', 'important'); 
-                videoContainer.style.background = "#000";
+                video.style.objectFit = 'cover';
             } else {
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.object-fit = 'contain';
+                video.style.objectFit = 'contain';
             }
-        }
+        };
+
+        document.addEventListener('fullscreenchange', handleResize);
+        document.addEventListener('webkitfullscreenchange', handleResize);
     </script>
 </body>
 </html>
