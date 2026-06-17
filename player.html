@@ -8,7 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     
     <style>
-        /* تصميم هيكل المشغل الاحترافي */
         .player-body {
             background-color: #000000;
             height: 100vh;
@@ -18,9 +17,9 @@
             overflow: hidden;
             font-family: sans-serif;
             position: relative;
+            user-select: none; /* تمنع تحديد النصوص بالخطأ أثناء اللمس */
         }
 
-        /* حاوي الفيديو والتحكم */
         .video-centered-container {
             flex: 1;
             display: flex;
@@ -30,6 +29,7 @@
             height: 100%;
             background: #000;
             position: relative;
+            cursor: pointer; /* تظهر للمستخدم على الكمبيوتر أنه يمكنه الضغط */
         }
 
         .video-wrapper-standalone {
@@ -46,43 +46,48 @@
             height: 100%;
             object-fit: contain; 
             transition: all 0.2s;
-            z-index: 1; /* طبقة الفيديو بالخلف */
+            z-index: 1;
         }
 
-        /* 👑 الحل السحري: جعل شريط التحكم يطفو فوق الفيديو دائماً */
-        .player-controls-panel {
+        /* 🎬 تحسين الهيدر والشريط السفلي ليدعما ميزة الاختفاء السلس */
+        .player-header, .player-controls-panel {
             position: absolute;
-            bottom: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 70%, rgba(0, 0, 0, 0) 100%);
+            box-sizing: border-box;
+            z-index: 99999 !important;
+            transition: opacity 0.4s ease, transform 0.4s ease; /* أنيميشن سلس للاختفاء والظهور */
+            opacity: 1; /* الوضع الافتراضي ظاهر */
+        }
+
+        .player-header {
+            top: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .player-controls-panel {
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.4) 70%, rgba(0, 0, 0, 0) 100%);
             padding: 25px 20px;
             display: flex;
             justify-content: space-around;
             align-items: center;
             gap: 10px;
-            box-sizing: border-box;
-            z-index: 99999 !important; /* رفعه لأعلى طبقة ممكنة فوق التمدد والـ Fullscreen */
         }
 
-        /* الهيدر العلوي يطفو أيضاً فوق الفيديو */
-        .player-header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(0,0,0,0));
-            color: #fff;
-            z-index: 99999 !important;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
+        /* 🚫 كلاس خاص يتم إضافته برمجياً لإخفاء الأزرار بسلاسة */
+        .controls-hidden {
+            opacity: 0 !important;
+            pointer-events: none; /* تمنع الضغط على الأزرار وهي مخفية */
+            cursor: none; /* إخفاء مؤشر الماوس على الكمبيوتر في وضع ملء الشاشة */
         }
 
         .control-btn {
-            background: rgba(29, 29, 32, 0.85); /* خلفية شفافة سينمائية */
+            background: rgba(29, 29, 32, 0.85);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 12px 18px;
@@ -94,23 +99,19 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
-            backdrop-filter: blur(5px); /* تأثير ضبابي زجاجي */
+            backdrop-filter: blur(5px);
         }
+        .control-btn:hover { background: rgba(50, 50, 55, 0.9); } /* تحسين التجربة على الكمبيوتر */
         .control-btn:active { transform: scale(0.95); }
 
-        .ratio-badge {
-            background: #00a2ff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-        .back-btn-player { color: #fff; text-decoration: none; font-size: 1.5rem; }
-        .player-ch-title { font-size: 1.2rem; font-weight: bold; margin: 0; }
+        .ratio-badge { background: #00a2ff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; }
+        .back-btn-player { color: #fff; text-decoration: none; font-size: 1.5rem; z-index: 100000; }
+        .player-ch-title { font-size: 1.2rem; font-weight: bold; margin: 0; color: #fff; }
     </style>
 </head>
 <body class="player-body">
 
-    <header class="player-header">
+    <header class="player-header" id="playerHeader">
         <a href="browse.html" class="back-btn-player">✕</a>
         <h2 class="player-ch-title" id="playingChannelTitle">Loading...</h2>
         <div style="width:30px;"></div> 
@@ -121,7 +122,7 @@
             <video id="standaloneVideoPlayer" autoplay playsinline></video>
         </div>
 
-        <div class="player-controls-panel">
+        <div class="player-controls-panel" id="controlsPanel">
             <button class="control-btn" id="muteToggleBtn">🔊 كتم</button>
             <button class="control-btn" id="skipBackBtn">⏪ -10ث</button>
             <button class="control-btn" id="aspectRatioBtn">
@@ -144,8 +145,13 @@
         const ratioStatus = document.getElementById('ratioStatus');
         const muteToggleBtn = document.getElementById('muteToggleBtn');
         const skipBackBtn = document.getElementById('skipBackBtn');
+        
+        // عناصر التحكم المراد إخفاؤها
+        const playerHeader = document.getElementById('playerHeader');
+        const controlsPanel = document.getElementById('controlsPanel');
 
         let currentRatioMode = 0; 
+        let controlsTimeout;
 
         if (channelName && channelStreamUrl) {
             document.getElementById('playingChannelTitle').innerText = decodeURIComponent(channelName);
@@ -170,8 +176,36 @@
             }
         }
 
-        // 🔘 1. زر التحكم بالأبعاد الطافي
-        aspectRatioBtn.addEventListener('click', () => {
+        // ⏱️ ميزة الإخفاء التلقائي الذكية (تظهر عند الحركة وتختفي بعد 3 ثوانٍ من السكون)
+        function showControls() {
+            playerHeader.classList.remove('controls-hidden');
+            controlsPanel.classList.remove('controls-hidden');
+            videoContainer.style.cursor = 'default';
+
+            // إعادة ضبط العداد في كل مرة يتحرك فيها المستخدم
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(hideControls, 3000); // 3000 ملي ثانية = 3 ثوانٍ
+        }
+
+        function hideControls() {
+            // نتحقق أولاً أن الفيديو يعمل حالياً وليس متوقفاً مؤقتاً
+            if (!video.paused) {
+                playerHeader.classList.add('controls-hidden');
+                controlsPanel.classList.add('controls-hidden');
+            }
+        }
+
+        // ربط الأحداث لتعمل على الموبايل (اللمس) والكمبيوتر (حركة الماوس) معاً بشكل ممتاز
+        videoContainer.addEventListener('mousemove', showControls);
+        videoContainer.addEventListener('touchstart', showControls);
+        videoContainer.addEventListener('click', showControls);
+
+        // بدء العداد فور تشغيل الصفحة تلقائياً
+        showControls();
+
+        // 🔘 1. زر التحكم بالأبعاد
+        aspectRatioBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // يمنع تداخل الضغط مع حدث تفعيل الأزرار
             currentRatioMode = (currentRatioMode + 1) % 3;
             
             if (currentRatioMode === 0) {
@@ -190,10 +224,12 @@
                 video.style.height = '100vh';
                 ratioStatus.innerText = "تمديد";
             }
+            showControls();
         });
 
         // 🔊 2. زر كتم وتفعيل الصوت
-        muteToggleBtn.addEventListener('click', () => {
+        muteToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             if (video.muted) {
                 video.muted = false;
                 muteToggleBtn.innerText = "🔊 كتم";
@@ -201,15 +237,19 @@
                 video.muted = true;
                 muteToggleBtn.innerText = "🔇 تشغيل الصوت";
             }
+            showControls();
         });
 
         // ⏪ 3. زر إرجاع البث 10 ثوانٍ
-        skipBackBtn.addEventListener('click', () => {
+        skipBackBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             video.currentTime = Math.max(0, video.currentTime - 10);
+            showControls();
         });
 
         // 📱 4. زر ملء الشاشة الكامل
-        fullscreenBtn.addEventListener('click', () => {
+        fullscreenBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             if (videoContainer.requestFullscreen) {
                 videoContainer.requestFullscreen();
             } else if (videoContainer.webkitRequestFullscreen) { 
@@ -221,9 +261,9 @@
             if (screen.orientation && screen.orientation.lock) {
                 screen.orientation.lock('landscape').catch(() => {});
             }
+            showControls();
         });
 
-        // تأمين ثبات العرض للـ Container بالكامل مع الأزرار
         const syncOrientationDimensions = () => {
             const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
             if (isFullscreen) {
@@ -233,6 +273,7 @@
                 videoContainer.style.width = '100%';
                 videoContainer.style.height = '100%';
             }
+            showControls();
         };
 
         document.addEventListener('fullscreenchange', syncOrientationDimensions);
